@@ -1,0 +1,11 @@
+{
+    "domain": "openai_response",
+    "name": "OpenAI Response",
+    "documentation": "https://github.com/yourusername/hass-openai-response",
+    "dependencies": [],
+    "codeowners": ["@hassassistant"],
+    "requirements": ["openai==0.27.0"],
+    "extra_quality_scale": "platinum",
+    "version": "0.1.0"
+}
+
