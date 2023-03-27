@@ -1,2 +1,2 @@
-# hassio_openai_chatgpt_api
+# hassio_openai
 Custom component to integrate OpenAI's ChatGPT into Home Assistant
