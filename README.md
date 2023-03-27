@@ -28,6 +28,10 @@ input_text:
   gpt_input:
     name: GPT-3 Input
 ```
+Note you can also create this input_text via the device helpers page!
+
+If you are creating via YAML, you will need to restart again to activate the new entity,
+
 To generate a response from GPT-3, update the **input_text.gpt_input** entity with the text you want to send to the model. The generated response will be available as an attribute of the **sensor.hassio_openai_response** entity.
 
 ## Example
