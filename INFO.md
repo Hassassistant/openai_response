@@ -34,15 +34,16 @@ To generate a response from GPT-3, update the **input_text.gpt_input** entity wi
 To display the GPT-3 input and response in your Home Assistant frontend, add the following to your **ui-lovelace.yaml** file or create a card in the Lovelace UI:
 
 ```yaml
-type: vertical-stack
+type: grid
+square: false
+columns: 1
 cards:
   - type: entities
     entities:
       - entity: input_text.gpt_input
-  - type: entities
-    entities:
-      - entity: sensor.hassio_openai_response
-        attribute: response_text
+  - type: markdown
+    content: '{{ state_attr(''sensor.hassio_openai_response'', ''response_text'') }}'
+    title: ChatGPT Response
 ```
 Now you can type your text in the GPT-3 Input field, and the generated response will be displayed in the response card.
 
