@@ -1,18 +1,52 @@
-<div class="markdown prose w-full break-words dark:prose-invert dark"><h1>Home Assistant OpenAI Response Sensor</h1><p>This custom component for Home Assistant allows you to generate text responses using OpenAI.</p><h2>Installation</h2><ol><li><p>Copy the <code>openai_response</code> folder to your Home Assistant's <code>custom_components</code> directory. If you don't have a <code>custom_components</code> directory, create one in the same directory as your <code>configuration.yaml</code> file.</p></li><li><p>Add the following lines to your Home Assistant <code>configuration.yaml</code> file:</p></li></ol><pre><div class="bg-black rounded-md mb-4"><div class="flex items-center relative text-gray-200 bg-gray-800 px-4 py-2 text-xs font-sans justify-between rounded-t-md"><span>yaml</span><button class="flex ml-auto gap-2"><svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Copy code</button></div><div class="p-4 overflow-y-auto"><code class="!whitespace-pre hljs language-yaml"><span class="hljs-attr">sensor:</span>
-  <span class="hljs-bullet">-</span> <span class="hljs-attr">platform:</span> <span class="hljs-string">openai_response</span>
-    <span class="hljs-attr">api_key:</span> <span class="hljs-string">YOUR_OPENAI_API_KEY</span>
-    <span class="hljs-attr">model:</span> <span class="hljs-string">"text-davinci-003"</span> <span class="hljs-comment"># Optional, defaults to "text-davinci-003"</span>
-    <span class="hljs-attr">name:</span> <span class="hljs-string">"hassio_openai_response"</span> <span class="hljs-comment"># Optional, defaults to "hassio_openai_response"</span>
-</code></div></div></pre><p>Replace <code>YOUR_OPENAI_API_KEY</code> with your actual OpenAI API key.</p><ol start="3"><li>Restart Home Assistant.</li></ol><h2>Usage</h2><p>Create an <code>input_text</code> entity in Home Assistant to serve as the input for the GPT-3 model. For example, add the following lines to your <code>configuration.yaml</code> file:</p><pre><div class="bg-black rounded-md mb-4"><div class="flex items-center relative text-gray-200 bg-gray-800 px-4 py-2 text-xs font-sans justify-between rounded-t-md"><span>yaml</span><button class="flex ml-auto gap-2"><svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Copy code</button></div><div class="p-4 overflow-y-auto"><code class="!whitespace-pre hljs language-yaml"><span class="hljs-attr">input_text:</span>
-  <span class="hljs-attr">gpt_input:</span>
-    <span class="hljs-attr">name:</span> <span class="hljs-string">GPT-3</span> <span class="hljs-string">Input</span>
-</code></div></div></pre><p>To generate a response from GPT-3, update the <code>input_text.gpt_input</code> entity with the text you want to send to the model. The generated response will be available as an attribute of the <code>sensor.hassio_openai_response</code> entity.</p><h2>Example</h2><p>To display the GPT-3 input and response in your Home Assistant frontend, add the following to your <code>ui-lovelace.yaml</code> file or create a card in the Lovelace UI:</p><pre><div class="bg-black rounded-md mb-4"><div class="flex items-center relative text-gray-200 bg-gray-800 px-4 py-2 text-xs font-sans justify-between rounded-t-md"><span>yaml</span><button class="flex ml-auto gap-2"><svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Copy code</button></div><div class="p-4 overflow-y-auto"><code class="!whitespace-pre hljs language-yaml"><span class="hljs-attr">type:</span> <span class="hljs-string">vertical-stack</span>
-<span class="hljs-attr">cards:</span>
-  <span class="hljs-bullet">-</span> <span class="hljs-attr">type:</span> <span class="hljs-string">entities</span>
-    <span class="hljs-attr">entities:</span>
-      <span class="hljs-bullet">-</span> <span class="hljs-attr">entity:</span> <span class="hljs-string">input_text.gpt_input</span>
-  <span class="hljs-bullet">-</span> <span class="hljs-attr">type:</span> <span class="hljs-string">entities</span>
-    <span class="hljs-attr">entities:</span>
-      <span class="hljs-bullet">-</span> <span class="hljs-attr">entity:</span> <span class="hljs-string">sensor.hassio_openai_response</span>
-        <span class="hljs-attr">attribute:</span> <span class="hljs-string">response_text</span>
-</code></div></div></pre><p>Now you can type your text in the GPT-3 Input field, and the generated response will be displayed in the response card.</p><h2>License</h2><p>This project is licensed under the MIT License - see the <a href="LICENSE" target="_new">LICENSE</a> file for details.</p><p><strong>Disclaimer</strong>: This project is not affiliated with or endorsed by OpenAI. Use the GPT-3 API at your own risk, and be aware of the API usage costs associated with the OpenAI API.</p></div>
+# Home Assistant OpenAI Response Sensor
+
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
+
+This custom component for Home Assistant allows you to generate text responses using OpenAI's GPT-3 model.
+
+## Installation
+**1.** Copy the **openai_response** folder to your Home Assistant's custom_components directory. If you don't have a **custom_components** directory, create one in the same directory as your **configuration.yaml** file.
+
+**2.** Add the following lines to your Home Assistant **configuration.yaml** file:
+
+```yaml
+sensor:
+  - platform: openai_response
+    api_key: YOUR_OPENAI_API_KEY
+    model: "text-davinci-003" # Optional, defaults to "text-davinci-003"
+    name: "hassio_openai_response" # Optional, defaults to "hassio_openai_response"
+```
+Replace **YOUR_OPENAI_API_KEY** with your actual OpenAI API key.
+
+**3.** Restart Home Assistant.
+
+## Usage
+Create an **input_text.gpt_input** entity in Home Assistant to serve as the input for the GPT-3 model. Add the following lines to your configuration.yaml file:
+
+```yaml
+input_text:
+  gpt_input:
+    name: GPT-3 Input
+```
+To generate a response from GPT-3, update the **input_text.gpt_input** entity with the text you want to send to the model. The generated response will be available as an attribute of the **sensor.hassio_openai_response** entity.
+
+## Example
+To display the GPT-3 input and response in your Home Assistant frontend, add the following to your **ui-lovelace.yaml** file or create a card in the Lovelace UI:
+
+```yaml
+type: vertical-stack
+cards:
+  - type: entities
+    entities:
+      - entity: input_text.gpt_input
+  - type: entities
+    entities:
+      - entity: sensor.hassio_openai_response
+        attribute: response_text
+```
+Now you can type your text in the GPT-3 Input field, and the generated response will be displayed in the response card.
+
+## License
+This project is licensed under the MIT License - see the **[LICENSE](https://chat.openai.com/LICENSE)** file for details.
+
+**Disclaimer:** This project is not affiliated with or endorsed by OpenAI. Use the GPT-3 API at your own risk, and be aware of the API usage costs associated with the OpenAI API.
