@@ -1,1 +1,0 @@
-"""OpenAI Response custom component."""
