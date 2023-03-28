@@ -1,3 +1,8 @@
+<img src="https://github.com/Hassassistant/openai_response/blob/main/misc/ChatGPT_image.PNG?raw=true"
+     width="35%"
+     align="right"
+     style="float: right; margin: 10px 0px 20px 20px;" />
+
 # Home Assistant OpenAI Response Sensor
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
