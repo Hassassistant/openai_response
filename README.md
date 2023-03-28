@@ -1,5 +1,5 @@
 <img src="https://github.com/Hassassistant/openai_response/blob/main/misc/ChatGPT_image.PNG?raw=true"
-     width="35%"
+     width="20%"
      align="right"
      style="float: right; margin: 10px 0px 20px 20px;" />
 
