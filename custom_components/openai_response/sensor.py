@@ -1,9 +1,11 @@
+"""The OpenAI sensor"""
+
 import openai
 import voluptuous as vol
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import CONF_API_KEY, CONF_NAME
 import homeassistant.helpers.config_validation as cv
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 import logging
 
 
@@ -30,7 +32,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass: HomeAssistant, config, async_add_entities, discovery_info=None
+):
+    """Setting up the sensor"""
     api_key = config[CONF_API_KEY]
     name = config[CONF_NAME]
     model = config[CONF_MODEL]
@@ -43,26 +48,30 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     @callback
     async def async_generate_openai_request(service):
-        _LOGGER.error(service)
-        _LOGGER.error(service.data)
+        """Handling service call"""
+        _LOGGER.debug(service.data)
+        sensor.request_running(
+            service.data.get(ATTR_MODEL, config[CONF_MODEL]),
+            service.data.get(ATTR_PROMPT),
+            service.data.get(ATTR_MOOD, config[CONF_MOOD]),
+        )
         response = await hass.async_add_executor_job(
             generate_openai_response_sync,
             service.data.get(ATTR_MODEL, config[CONF_MODEL]),
             service.data.get(ATTR_PROMPT),
             service.data.get(ATTR_MOOD, config[CONF_MOOD]),
         )
-        _LOGGER.error(response)
-        sensor._response_text = response["choices"][0]["message"]["content"]
-        sensor._state = "response_received"
-        sensor.async_write_ha_state()
+        _LOGGER.debug(response)
+        sensor.response_received(response["choices"][0]["message"]["content"])
 
     hass.services.async_register(
         "openai", SERVICE_OPENAI_INPUT, async_generate_openai_request
     )
 
 
-def generate_openai_response_sync(model, prompt, mood):
-    _LOGGER.error("Model: %s, Mood: %s, Prompt: %s", model, mood, prompt)
+def generate_openai_response_sync(model: str, prompt: str, mood: str):
+    """Do the real OpenAI request"""
+    _LOGGER.debug("Model: %s, Mood: %s, Prompt: %s", model, mood, prompt)
     return openai.ChatCompletion.create(
         model=model,
         messages=[
@@ -73,13 +82,16 @@ def generate_openai_response_sync(model, prompt, mood):
 
 
 class OpenAIResponseSensor(SensorEntity):
-    def __init__(self, hass, name, model, mood):
+    """The OpenAI sensor"""
+
+    def __init__(self, hass: HomeAssistant, name: str, model: str, mood: str) -> None:
         self._hass = hass
         self._name = name
         self._model = model
         self._default_mood = mood
         self._mood = None
-        self._state = None
+        self._prompt = None
+        self._attr_native_value = None
         self._response_text = ""
 
     @property
@@ -87,31 +99,45 @@ class OpenAIResponseSensor(SensorEntity):
         return self._name
 
     @property
-    def state(self):
-        return self._state
-
-    @property
     def extra_state_attributes(self):
-        return {"response_text": self._response_text, "mood": self._mood}
+        return {
+            "response_text": self._response_text,
+            "mood": self._mood,
+            "prompt": self._prompt,
+            "model": self._model,
+        }
 
-    async def async_generate_openai_response(
-        self, entity_id, old_state, new_state, mood=None
-    ):
-        new_text = new_state.state
+    def request_running(self, model, prompt, mood=None):
+        """Staring a new request"""
+        self._model = model
+        self._prompt = prompt
         self._mood = mood or self._default_mood
+        self._response_text = ""
+        self._attr_native_value = "requesting"
+        self.async_write_ha_state()
+
+    def response_received(self, response_text):
+        """Updating the sensor state"""
+        self._response_text = response_text
+        self._attr_native_value = "response_received"
+        self.async_write_ha_state()
+
+    async def async_generate_openai_response(self, entity_id, old_state, new_state):
+        """Updating the sensor from the input_text"""
+        new_text = new_state.state
 
         if new_text:
+            self.request_running(self._model, new_text)
             response = await self._hass.async_add_executor_job(
                 generate_openai_response_sync,
                 self._model,
                 new_text,
                 self._mood,
             )
-            self._response_text = response["choices"][0]["message"]["content"]
-            self._state = "response_received"
-            self.async_write_ha_state()
+            self.response_received(response["choices"][0]["message"]["content"])
 
     async def async_added_to_hass(self):
+        """Added to hass"""
         self.async_on_remove(
             self._hass.helpers.event.async_track_state_change(
                 "input_text.gpt_input", self.async_generate_openai_response
@@ -119,4 +145,5 @@ class OpenAIResponseSensor(SensorEntity):
         )
 
     async def async_update(self):
+        """Ignore other updates"""
         pass
