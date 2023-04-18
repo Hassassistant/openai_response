@@ -4,15 +4,20 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import CONF_API_KEY, CONF_NAME
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
+import logging
 
+
+_LOGGER = logging.getLogger(__name__)
 
 ATTR_MODEL = "model"
-ATTR_MOOD = "model"
-ATTR_PROMPT = "model"
+ATTR_MOOD = "mood"
+ATTR_PROMPT = "prompt"
 CONF_MODEL = "model"
+CONF_MOOD = "mood"
 DEFAULT_NAME = "hassio_openai_response"
 DEFAULT_MODEL = "gpt-3.5-turbo"
 DEFAULT_MOOD = "You are a helpful assistant"
+# DOMAIIN = "openai"
 SERVICE_OPENAI_INPUT = "openai_input"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -24,6 +29,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
+
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     api_key = config[CONF_API_KEY]
     name = config[CONF_NAME]
@@ -32,22 +38,37 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     openai.api_key = api_key
 
-    async_add_entities([OpenAIResponseSensor(hass, name, model)], True)
+    sensor = OpenAIResponseSensor(hass, name, model, mood)
+    async_add_entities([sensor], True)
 
     @callback
-    def async_generate_openai_request(service):
-        generate_openai_response_sync(service.data.get(ATTR_MODEL, config[CONF_MODEL]), service.data.get(ATTR_PROMPT), service.data.get(ATTR_MOOD, config[CONF_MOOD]))
+    async def async_generate_openai_request(service):
+        _LOGGER.error(service)
+        _LOGGER.error(service.data)
+        response = await hass.async_add_executor_job(
+            generate_openai_response_sync,
+            service.data.get(ATTR_MODEL, config[CONF_MODEL]),
+            service.data.get(ATTR_PROMPT),
+            service.data.get(ATTR_MOOD, config[CONF_MOOD]),
+        )
+        _LOGGER.error(response)
+        sensor._response_text = response["choices"][0]["message"]["content"]
+        sensor._state = "response_received"
+        sensor.async_write_ha_state()
 
-    hass.services.async_register(DOMAIN, SERVICE_OPENAI_INPUT, generate_openai_response_sync)
+    hass.services.async_register(
+        "openai", SERVICE_OPENAI_INPUT, async_generate_openai_request
+    )
 
 
 def generate_openai_response_sync(model, prompt, mood):
-    return openai.Completion.create(
+    _LOGGER.error("Model: %s, Mood: %s, Prompt: %s", model, mood, prompt)
+    return openai.ChatCompletion.create(
         model=model,
         messages=[
             {"role": "system", "content": mood},
-            {"role": "user", "content": prompt}
-        ]
+            {"role": "user", "content": prompt},
+        ],
     )
 
 
@@ -73,7 +94,9 @@ class OpenAIResponseSensor(SensorEntity):
     def extra_state_attributes(self):
         return {"response_text": self._response_text, "mood": self._mood}
 
-    async def async_generate_openai_response(self, entity_id, old_state, new_state, mood = None):
+    async def async_generate_openai_response(
+        self, entity_id, old_state, new_state, mood=None
+    ):
         new_text = new_state.state
         self._mood = mood or self._default_mood
 
@@ -84,7 +107,7 @@ class OpenAIResponseSensor(SensorEntity):
                 new_text,
                 self._mood,
             )
-            self._response_text = response['choices'][0]['message']['content']
+            self._response_text = response["choices"][0]["message"]["content"]
             self._state = "response_received"
             self.async_write_ha_state()
 
