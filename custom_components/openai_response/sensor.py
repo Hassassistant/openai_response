@@ -6,15 +6,21 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
 
 
+ATTR_MODEL = "model"
+ATTR_MOOD = "model"
+ATTR_PROMPT = "model"
 CONF_MODEL = "model"
 DEFAULT_NAME = "hassio_openai_response"
-DEFAULT_MODEL = "text-davinci-003"
+DEFAULT_MODEL = "gpt-3.5-turbo"
+DEFAULT_MOOD = "You are a helpful assistant"
+SERVICE_OPENAI_INPUT = "openai_input"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_API_KEY): cv.string,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_MODEL, default=DEFAULT_MODEL): cv.string,
+        vol.Optional(CONF_MOOD, default=DEFAULT_MOOD): cv.string,
     }
 )
 
@@ -22,29 +28,36 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     api_key = config[CONF_API_KEY]
     name = config[CONF_NAME]
     model = config[CONF_MODEL]
+    mood = config[CONF_MOOD]
 
     openai.api_key = api_key
 
     async_add_entities([OpenAIResponseSensor(hass, name, model)], True)
 
+    @callback
+    def async_generate_openai_request(service):
+        generate_openai_response_sync(service.data.get(ATTR_MODEL, config[CONF_MODEL]), service.data.get(ATTR_PROMPT), service.data.get(ATTR_MOOD, config[CONF_MOOD]))
 
-def generate_openai_response_sync(model, prompt, temperature, max_tokens, top_p, frequency_penalty, presence_penalty):
+    hass.services.async_register(DOMAIN, SERVICE_OPENAI_INPUT, generate_openai_response_sync)
+
+
+def generate_openai_response_sync(model, prompt, mood):
     return openai.Completion.create(
         model=model,
-        prompt=prompt,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        top_p=top_p,
-        frequency_penalty=frequency_penalty,
-        presence_penalty=presence_penalty
+        messages=[
+            {"role": "system", "content": mood},
+            {"role": "user", "content": prompt}
+        ]
     )
 
 
 class OpenAIResponseSensor(SensorEntity):
-    def __init__(self, hass, name, model):
+    def __init__(self, hass, name, model, mood):
         self._hass = hass
         self._name = name
         self._model = model
+        self._default_mood = mood
+        self._mood = None
         self._state = None
         self._response_text = ""
 
@@ -58,22 +71,20 @@ class OpenAIResponseSensor(SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        return {"response_text": self._response_text}
+        return {"response_text": self._response_text, "mood": self._mood}
 
-    async def async_generate_openai_response(self, entity_id, old_state, new_state):
+    async def async_generate_openai_response(self, entity_id, old_state, new_state, mood = None):
         new_text = new_state.state
+        self._mood = mood or self._default_mood
+
         if new_text:
             response = await self._hass.async_add_executor_job(
                 generate_openai_response_sync,
                 self._model,
                 new_text,
-                0.9,
-                964,
-                1,
-                0,
-                0
+                self._mood,
             )
-            self._response_text = response["choices"][0]["text"]
+            self._response_text = response['choices'][0]['message']['content']
             self._state = "response_received"
             self.async_write_ha_state()
 

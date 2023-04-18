@@ -28,8 +28,9 @@ Head to **[This Link](https://platform.openai.com/account/api-keys)** to get you
 sensor:
   - platform: openai_response
     api_key: YOUR_OPENAI_API_KEY
-    model: "text-davinci-003" # Optional, defaults to "text-davinci-003"
+    model: "gpt-3.5-turbo" # Optional, defaults to "gpt-3.5-turbo"
     name: "hassio_openai_response" # Optional, defaults to "hassio_openai_response"
+    mood: "You are a helpful assistant" #  Optional, defaults to "You are a helpful assistant"
 ```
 Replace **YOUR_OPENAI_API_KEY** with your actual OpenAI API key.
 
