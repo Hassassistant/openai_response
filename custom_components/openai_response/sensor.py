@@ -19,7 +19,7 @@ CONF_MOOD = "mood"
 DEFAULT_NAME = "hassio_openai_response"
 DEFAULT_MODEL = "gpt-3.5-turbo"
 DEFAULT_MOOD = "You are a helpful assistant"
-# DOMAIIN = "openai"
+DOMAIN = "openai_response"
 SERVICE_OPENAI_INPUT = "openai_input"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -65,8 +65,9 @@ async def async_setup_platform(
         sensor.response_received(response["choices"][0]["message"]["content"])
 
     hass.services.async_register(
-        "openai", SERVICE_OPENAI_INPUT, async_generate_openai_request
+        DOMAIN, SERVICE_OPENAI_INPUT, async_generate_openai_request
     )
+    return True
 
 
 def generate_openai_response_sync(model: str, prompt: str, mood: str):

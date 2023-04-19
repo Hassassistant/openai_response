@@ -7,12 +7,19 @@ openai_input:
       description: The message to send
       required: true
       example: "Tell a joke"
+      selector:
+        text:
+          multiline: true
+
     mood:
       name: Mood
       description: How the bot should tune its response
       required: false
       example: "You are a helpful assistant with ironical responses"
       default: "You are a helpful assistant"
+      selector:
+        text:
+          multiline: true
     model:
       name: Model
       advanced: true
@@ -20,5 +27,9 @@ openai_input:
       required: false
       example: "gpt-3.5-turbo"
       default: "gpt-3.5-turbo"
+      selector:
+        select:
+          options:
+            - "gpt-3.5-turbo"
 
 
