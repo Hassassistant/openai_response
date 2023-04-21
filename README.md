@@ -28,9 +28,8 @@ Head to **[This Link](https://platform.openai.com/account/api-keys)** to get you
 sensor:
   - platform: openai_response
     api_key: YOUR_OPENAI_API_KEY
-    model: "gpt-3.5-turbo" # Optional, defaults to "gpt-3.5-turbo"
+    model: "text-davinci-003" # Optional, defaults to "text-davinci-003"
     name: "hassio_openai_response" # Optional, defaults to "hassio_openai_response"
-    mood: "You are a helpful assistant" #  Optional, defaults to "You are a helpful assistant"
 ```
 Replace **YOUR_OPENAI_API_KEY** with your actual OpenAI API key.
 
@@ -49,16 +48,6 @@ Note you can also create this input_text via the device helpers page!
 If you are creating via YAML, you will need to restart again to activate the new entity,
 
 To generate a response from GPT-3, update the **input_text.gpt_input** entity with the text you want to send to the model. The generated response will be available as an attribute of the **sensor.hassio_openai_response** entity.
-
-You can also use a service call to send a request:
-
-```yaml
-service: openai_response.openai_input
-data:
-  prompt: Tell a joke
-  mood: You are a joker     # Optional, will use the configured or default mood if not specified
-  model: gpt-3.5-turbo      # Optional, will use the configured or default model if not specified
-```
 
 ## Example
 To display the GPT-3 input and response in your Home Assistant frontend, add the following to your **ui-lovelace.yaml** file or create a card in the Lovelace UI:
