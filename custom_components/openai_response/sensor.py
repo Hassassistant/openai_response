@@ -46,6 +46,7 @@ class OpenAIResponseSensor(SensorEntity):
         self._name = name
         self._model = model
         self._state = None
+        self._prompt = ""
         self._response_text = ""
 
     @property
@@ -58,7 +59,7 @@ class OpenAIResponseSensor(SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        return {"response_text": self._response_text}
+        return {"prompt": self._prompt, "response_text": self._response_text}
 
     async def async_generate_openai_response(self, entity_id, old_state, new_state):
         new_text = new_state.state
@@ -73,6 +74,7 @@ class OpenAIResponseSensor(SensorEntity):
                 0,
                 0
             )
+            self._prompt = new_text
             self._response_text = response["choices"][0]["text"]
             self._state = "response_received"
             self.async_write_ha_state()
